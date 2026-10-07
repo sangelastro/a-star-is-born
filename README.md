@@ -6,6 +6,10 @@
   🇬🇧 <b>English</b> · 🇮🇹 <a href="README.it.md">Italiano</a>
 </p>
 
+<p align="center">
+  <a href="https://sangelastro.github.io/a-star-is-born/"><b>▶️ Try the live demo</b></a>, no install needed
+</p>
+
 > **A love story between a search algorithm and a scrambled Rubik's Cube.**
 > One is lost, twisted and confused. The other is a pathfinder with a heuristic and a plan.
 > Spoiler: it ends with every face the same color. 🌟
@@ -18,6 +22,7 @@
 
 ## ✨ Features
 
+- 🏁 **Heuristic Race**: one click and every heuristic solves the same cube, then a leaderboard shows nodes expanded, solution length and time.
 - 🧊 **3D cube** rendered with Three.js: orbit, zoom and admire it from every angle.
 - 👣 **Step-by-step A\***: advance one expansion at a time, or hit *Auto Play* and grab popcorn.
 - 🌳 **Live search tree** built with D3. The current node, the frontier and the winning path are highlighted, and you can zoom, pan or go full screen.
@@ -56,6 +61,18 @@ The loop:
 
 > ℹ️ Some heuristics in this demo are scaled for speed and are not strictly admissible, so solutions are short but not always guaranteed to be optimal. The search is also capped at 5,000 iterations to keep the browser happy.
 
+## 🏁 The Heuristic Race
+
+Talk is cheap, so let them race. Scramble the cube, hit **🏁 Race all heuristics** and every heuristic solves the *same* cube, one after another. The leaderboard ranks them by **nodes expanded**, the honest measure of how smart a heuristic is: the fewer states A\* has to explore, the better its guess of the distance to the goal.
+
+<p align="center">
+  <img src="docs/race.png" alt="Heuristic Race leaderboard: Disjoint PDB wins with 132 nodes expanded, while two heuristics hit the search limit" width="80%">
+</p>
+
+On this 7-move scramble, the disjoint pattern database finds the solution after expanding **132 nodes**, while counting misplaced stickers needs **1,158**. Two heuristics never get there before the search limit. Same algorithm, same cube: the only difference is the heuristic. That's A\* in a nutshell.
+
+> The PDB tables are built automatically the first time you start a race (a few seconds, once per session).
+
 ## 🧩 Heuristics
 
 | Heuristic | Idea |
@@ -71,7 +88,7 @@ The loop:
 
 ## 🚀 Getting started
 
-Requires [Node.js](https://nodejs.org/) 18+.
+The quickest way is the [live demo](https://sangelastro.github.io/a-star-is-born/). To run it locally you need [Node.js](https://nodejs.org/) 18+.
 
 ```bash
 npm install
@@ -86,6 +103,8 @@ To build a static bundle:
 npm run build
 npm run preview
 ```
+
+Every push to `main` is deployed to GitHub Pages automatically by the workflow in `.github/workflows/deploy.yml`.
 
 ## 🗂️ Project structure
 

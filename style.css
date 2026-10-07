@@ -609,3 +609,122 @@ button:disabled {
   margin: 0;
   cursor: pointer;
 }
+
+/* Heuristic Race */
+#race-btn {
+  flex-basis: 100%;
+  background: #b45309;
+}
+
+#race-btn:hover {
+  background: #92400e;
+}
+
+.race-content {
+  max-width: 760px;
+  margin: 6% auto;
+}
+
+.race-content h2 {
+  margin-top: 0;
+}
+
+.race-subtitle {
+  margin: 0 0 6px 0;
+  color: #d1d5db;
+}
+
+.race-meta {
+  margin: 0 0 4px 0;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-family: monospace;
+}
+
+.race-meta:empty {
+  display: none;
+}
+
+.race-table {
+  margin-top: 14px;
+  font-size: 0.9rem;
+}
+
+.race-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 70px 70px 70px;
+  gap: 12px;
+  align-items: center;
+  padding: 7px 8px;
+  border-bottom: 1px solid #374151;
+  border-radius: 6px;
+}
+
+.race-row .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.race-head {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #4b5563;
+}
+
+.race-bar-cell {
+  height: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.race-bar {
+  display: block;
+  height: 10px;
+  background: #60a5fa;
+  border-radius: 0 4px 4px 0;
+  transition: width 0.25s ease;
+}
+
+.race-row.failed .race-bar {
+  background: #6b7280;
+}
+
+.race-row.waiting,
+.race-row.skipped {
+  color: #6b7280;
+}
+
+.race-row.running .race-name::after {
+  content: ' ⏳';
+}
+
+.race-row.failed .num:nth-child(4) {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.race-row.winner {
+  background: rgba(250, 204, 21, 0.1);
+  box-shadow: inset 3px 0 0 #facc15;
+  font-weight: 600;
+}
+
+.race-summary {
+  margin: 16px 0 0 0;
+  line-height: 1.5;
+  color: #e5e7eb;
+  min-height: 1.5em;
+}
+
+@media (max-width: 640px) {
+  .race-row {
+    grid-template-columns: 110px 1fr 56px 56px;
+    gap: 8px;
+  }
+
+  .race-row > :nth-child(5) {
+    display: none;
+  }
+}

@@ -80,6 +80,7 @@
       <button id="step-btn" disabled>Next Step</button>
       <button id="play-btn" disabled>Auto Play</button>
       <button id="reset-btn">Reset</button>
+      <button id="race-btn" title="Solve the current cube with every heuristic and compare">🏁 Race all heuristics</button>
     </div>
 
     <div id="stats">
@@ -147,6 +148,28 @@
         <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
       </svg>
     </button>
+  </div>
+
+  <!-- Heuristic Race Modal -->
+  <div id="race-modal" class="modal hidden">
+    <div class="modal-content race-content">
+      <span id="close-race-modal" class="close">&times;</span>
+      <h2>🏁 Heuristic Race</h2>
+      <p class="race-subtitle">Same cube, every heuristic. <strong>Fewer nodes expanded = smarter heuristic.</strong></p>
+      <p id="race-scramble" class="race-meta"></p>
+      <p id="race-status" class="race-meta"></p>
+      <div class="race-table" role="table" aria-label="Heuristic race results">
+        <div class="race-row race-head" role="row">
+          <span role="columnheader">Heuristic</span>
+          <span role="columnheader">Nodes expanded</span>
+          <span role="columnheader" class="num">Nodes</span>
+          <span role="columnheader" class="num">Moves</span>
+          <span role="columnheader" class="num">Time</span>
+        </div>
+        <div id="race-rows"></div>
+      </div>
+      <p id="race-summary" class="race-summary"></p>
+    </div>
   </div>
 
   <!-- Heuristic Info Modal -->

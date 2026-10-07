@@ -6,6 +6,10 @@
   🇬🇧 <a href="README.md">English</a> · 🇮🇹 <b>Italiano</b>
 </p>
 
+<p align="center">
+  <a href="https://sangelastro.github.io/a-star-is-born/"><b>▶️ Provalo subito online</b></a>, senza installare nulla
+</p>
+
 > **Una storia d'amore tra un algoritmo di ricerca e un cubo di Rubik tutto mescolato.**
 > Lui è perso, contorto e confuso. Lei è una cercatrice di percorsi con un'euristica e un piano.
 > Spoiler: finisce con ogni faccia di un solo colore. 🌟
@@ -18,6 +22,7 @@
 
 ## ✨ Funzionalità
 
+- 🏁 **Gara delle euristiche**: con un click tutte le euristiche risolvono lo stesso cubo, e una classifica mostra nodi espansi, lunghezza della soluzione e tempo.
 - 🧊 **Cubo in 3D** con Three.js: lo ruoti, lo zoomi e lo ammiri da ogni angolazione.
 - 👣 **A\* passo passo**: avanzi un'espansione alla volta, oppure premi *Auto Play* e ti godi lo spettacolo.
 - 🌳 **Albero di ricerca in tempo reale** con D3. Il nodo corrente, la frontiera e il percorso vincente sono evidenziati, e puoi zoomare, spostarti o andare a schermo intero.
@@ -56,6 +61,18 @@ Il ciclo:
 
 > ℹ️ Alcune euristiche di questa demo sono scalate per andare più veloci e non sono strettamente ammissibili: le soluzioni sono corte, ma non sempre garantite ottime. La ricerca si ferma inoltre a 5.000 iterazioni, per non far soffrire il browser.
 
+## 🏁 La gara delle euristiche
+
+Le chiacchiere stanno a zero: facciamole gareggiare. Mescola il cubo, premi **🏁 Race all heuristics** e tutte le euristiche risolvono lo *stesso* cubo, una dopo l'altra. La classifica le ordina per **nodi espansi**, la misura onesta di quanto è furba un'euristica: meno stati A\* deve esplorare, migliore è la sua stima della distanza dall'obiettivo.
+
+<p align="center">
+  <img src="docs/race.png" alt="Classifica della gara: Disjoint PDB vince con 132 nodi espansi, mentre due euristiche raggiungono il limite di ricerca" width="80%">
+</p>
+
+Su questo mescolamento da 7 mosse, il pattern database disgiunto trova la soluzione espandendo **132 nodi**, mentre contare gli adesivi fuori posto ne richiede **1.158**. Due euristiche non ci arrivano prima del limite di ricerca. Stesso algoritmo, stesso cubo: cambia solo l'euristica. Ecco A\* in poche parole.
+
+> Le tabelle PDB vengono costruite in automatico la prima volta che avvii una gara (pochi secondi, una volta per sessione).
+
 ## 🧩 Euristiche
 
 | Euristica | Idea |
@@ -71,7 +88,7 @@ Il ciclo:
 
 ## 🚀 Come avviarlo
 
-Serve [Node.js](https://nodejs.org/) 18 o superiore.
+Il modo più veloce è la [demo online](https://sangelastro.github.io/a-star-is-born/). Per avviarlo in locale serve [Node.js](https://nodejs.org/) 18 o superiore.
 
 ```bash
 npm install
@@ -86,6 +103,8 @@ Per creare la versione statica:
 npm run build
 npm run preview
 ```
+
+Ogni push su `main` viene pubblicato in automatico su GitHub Pages dal workflow in `.github/workflows/deploy.yml`.
 
 ## 🗂️ Struttura del progetto
 

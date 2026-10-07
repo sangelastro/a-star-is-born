@@ -308,40 +308,50 @@ heuristicSelect.addEventListener('change', () => {
     if (isSolving) resetSolver();
 });
 
-generatePdbBtn.addEventListener('click', async () => {
-    if (pdbsGenerated) return;
+let pdbGenerationPromise = null;
+
+// Builds the pattern databases once; concurrent callers share the same run.
+// onStatus (optional) receives progress text, e.g. "Corner Perm: 1000/40320".
+function ensurePDBs(onStatus) {
+    if (pdbsGenerated) return Promise.resolve(true);
+    if (pdbGenerationPromise) return pdbGenerationPromise;
 
     generatePdbBtn.disabled = true;
     generatePdbBtn.textContent = "Generating...";
     pdbStatus.textContent = "Generating Pattern Databases... This may take a few seconds.";
     pdbStatus.style.color = "#aaa";
 
-    try {
-        await generatePDBs((msg, total) => {
-            // msg might be "Corner Perm: 1000/40320"
-            // We can parse it or just show text
-            if (typeof msg === 'string') {
-                pdbStatus.textContent = msg;
-            }
-            if (typeof msg === 'number' && total) {
-                const pct = Math.round((msg / total) * 100);
-                pdbProgress.style.width = `${pct}%`;
-            }
-        });
-
+    pdbGenerationPromise = generatePDBs((msg, total) => {
+        if (typeof msg === 'string') {
+            pdbStatus.textContent = msg;
+            if (onStatus) onStatus(msg);
+        }
+        if (typeof msg === 'number' && total) {
+            const pct = Math.round((msg / total) * 100);
+            pdbProgress.style.width = `${pct}%`;
+        }
+    }).then(() => {
         pdbsGenerated = true;
         generatePdbBtn.textContent = "Generated";
         pdbStatus.textContent = "PDBs Ready!";
         pdbStatus.style.color = "#4ade80";
         pdbProgress.style.width = "100%";
-    } catch (e) {
+        return true;
+    }).catch((e) => {
         console.error(e);
         pdbStatus.textContent = "Error generating PDBs.";
         pdbStatus.style.color = "#ef4444";
         generatePdbBtn.disabled = false;
         generatePdbBtn.textContent = "Retry";
-    }
-});
+        return false;
+    }).finally(() => {
+        pdbGenerationPromise = null;
+    });
+
+    return pdbGenerationPromise;
+}
+
+generatePdbBtn.addEventListener('click', () => ensurePDBs());
 
 scrambleBtn.addEventListener('click', () => {
     resetSolver();
@@ -450,6 +460,180 @@ const resizeObserver = new ResizeObserver(entries => {
 });
 resizeObserver.observe(treeContainer);
 
+
+// --- Heuristic Race ---
+
+const RACE_HEURISTICS = [
+    { name: 'Misplaced Stickers', fn: heuristicMisplaced },
+    { name: 'Misplaced Cubies', fn: heuristicMisplacedCubies },
+    { name: 'Twist & Flip', fn: heuristicTwistFlip },
+    { name: '3D Manhattan', fn: heuristicManhattan },
+    { name: 'Single PDB', fn: heuristicSinglePDB },
+    { name: 'Disjoint PDB', fn: heuristicDisjointPDB }
+];
+
+const raceBtn = document.getElementById('race-btn');
+const raceModal = document.getElementById('race-modal');
+const raceRowsEl = document.getElementById('race-rows');
+const raceScrambleEl = document.getElementById('race-scramble');
+const raceStatusEl = document.getElementById('race-status');
+const raceSummaryEl = document.getElementById('race-summary');
+let isRacing = false;
+let raceCancelled = false;
+
+document.getElementById('close-race-modal').onclick = closeRaceModal;
+raceModal.addEventListener('click', (event) => {
+    if (event.target === raceModal) closeRaceModal();
+});
+
+function closeRaceModal() {
+    raceCancelled = true;
+    raceModal.classList.add('hidden');
+}
+
+function setRaceControlsDisabled(disabled) {
+    [raceBtn, scrambleBtn, solveBtn, applyScrambleBtn, toggleManualModeBtn].forEach(b => b.disabled = disabled);
+}
+
+raceBtn.addEventListener('click', async () => {
+    if (isRacing) return;
+    if (cubeState.isSolved()) {
+        alert("The cube is already solved! Scramble it first, then start the race.");
+        return;
+    }
+
+    resetSolver();
+    updateCubeVisuals(cubeGroup, cubeState);
+    isRacing = true;
+    raceCancelled = false;
+    setRaceControlsDisabled(true);
+
+    const startState = cubeState.clone();
+    raceScrambleEl.textContent = currentScrambleMoves.length > 0
+        ? `Scramble: ${currentScrambleMoves.join(' ')}`
+        : 'Scramble: custom cube (manual colors)';
+    raceSummaryEl.textContent = '';
+    raceModal.classList.remove('hidden');
+
+    const rows = RACE_HEURISTICS.map(h => ({ ...h, status: 'waiting', expanded: 0, moves: null, ms: 0 }));
+    renderRaceRows(rows);
+
+    raceStatusEl.textContent = pdbsGenerated ? '' : 'Building pattern databases (one-time, a few seconds)...';
+    const pdbReady = await ensurePDBs(msg => { raceStatusEl.textContent = `Building pattern databases: ${msg}`; });
+    if (!pdbReady) {
+        rows.filter(r => r.fn === heuristicSinglePDB || r.fn === heuristicDisjointPDB)
+            .forEach(r => { r.status = 'skipped'; });
+    }
+
+    for (const row of rows) {
+        if (raceCancelled) break;
+        if (row.status === 'skipped') continue;
+        raceStatusEl.textContent = `Racing: ${row.name}...`;
+        row.status = 'running';
+        renderRaceRows(rows);
+        const ok = await raceOne(row, startState, () => renderRaceRows(rows));
+        if (!ok) break;
+        renderRaceRows(rows);
+    }
+
+    isRacing = false;
+    setRaceControlsDisabled(false);
+    if (raceCancelled) return;
+
+    raceStatusEl.textContent = '';
+    rows.sort(compareRaceRows);
+    renderRaceRows(rows, true);
+    raceSummaryEl.innerHTML = raceSummary(rows);
+});
+
+// Runs A* with one heuristic; updates row in place. Returns false if the race was cancelled.
+async function raceOne(row, startState, onTick) {
+    const generator = SolveAStarGenerator(startState, row.fn);
+    while (true) {
+        const t0 = performance.now();
+        const { value, done } = await generator.next();
+        row.ms += performance.now() - t0; // compute time only, UI pauses excluded
+
+        if (done || !value) {
+            row.status = 'failed';
+            return true;
+        }
+        if (value.type === 'step') {
+            row.expanded++;
+        } else if (value.type === 'success') {
+            row.status = 'solved';
+            row.moves = value.path.length;
+            return true;
+        } else {
+            row.status = 'failed';
+            return true;
+        }
+
+        // Let the browser breathe and show live progress
+        if (row.expanded % 40 === 0) {
+            onTick();
+            await new Promise(r => setTimeout(r, 0));
+            if (raceCancelled) return false;
+        }
+    }
+}
+
+function compareRaceRows(a, b) {
+    const rank = r => (r.status === 'solved' ? 0 : r.status === 'failed' ? 1 : 2);
+    return rank(a) - rank(b) || a.expanded - b.expanded || a.ms - b.ms;
+}
+
+function renderRaceRows(rows, finished = false) {
+    const maxExpanded = Math.max(1, ...rows.map(r => r.expanded));
+    const winner = finished && rows[0] && rows[0].status === 'solved' ? rows[0] : null;
+
+    raceRowsEl.innerHTML = rows.map(r => {
+        const pct = r.expanded > 0 ? Math.max(1, (r.expanded / maxExpanded) * 100) : 0;
+        let moves = '—';
+        if (r.status === 'solved') moves = r.moves;
+        else if (r.status === 'running') moves = 'racing…';
+        else if (r.status === 'failed') moves = 'gave up';
+        else if (r.status === 'skipped') moves = 'skipped';
+        const time = (r.status === 'solved' || r.status === 'failed') ? formatMs(r.ms) : '—';
+        const tooltip = r.status === 'solved'
+            ? `${r.name}: solved in ${r.moves} moves, ${r.expanded.toLocaleString('en-US')} nodes expanded, ${formatMs(r.ms)}`
+            : r.status === 'failed'
+                ? `${r.name}: hit the search limit after ${r.expanded.toLocaleString('en-US')} nodes expanded`
+                : r.name;
+
+        return `
+            <div class="race-row ${r.status} ${r === winner ? 'winner' : ''}" role="row" title="${tooltip}">
+                <span class="race-name" role="cell">${r === winner ? '🏆 ' : ''}${r.name}</span>
+                <span class="race-bar-cell" role="cell"><span class="race-bar" style="width:${pct}%"></span></span>
+                <span class="num" role="cell">${r.expanded > 0 ? r.expanded.toLocaleString('en-US') : '—'}</span>
+                <span class="num" role="cell">${moves}</span>
+                <span class="num" role="cell">${time}</span>
+            </div>`;
+    }).join('');
+}
+
+function raceSummary(rows) {
+    const solved = rows.filter(r => r.status === 'solved');
+    const failed = rows.filter(r => r.status === 'failed');
+    if (solved.length === 0) {
+        return "😵 Nobody made it this time. Every heuristic gave up: try an easier scramble.";
+    }
+    const best = solved[0];
+    let text = `🏆 <strong>${best.name}</strong> wins: solved in ${best.moves} moves expanding just ${best.expanded.toLocaleString('en-US')} nodes.`;
+    const worst = solved[solved.length - 1];
+    if (worst !== best && worst.expanded > best.expanded) {
+        const ratio = worst.expanded / best.expanded;
+        text += ` That's ${ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1)}× fewer than ${worst.name}.`;
+    }
+    if (failed.length > 0) {
+        text += ` ${failed.length} heuristic${failed.length > 1 ? 's' : ''} hit the search limit and gave up.`;
+    }
+    return text;
+}
+
+function formatMs(ms) {
+    return ms >= 1000 ? `${(ms / 1000).toFixed(1)} s` : `${Math.max(1, Math.round(ms))} ms`;
+}
 
 // --- Logic Functions ---
 
