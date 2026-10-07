@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rubik's Cube A* Visualization</title>
+</head>
+
+<body>
+  <div id="ui-container">
+    <h1>Rubik's A* Solver</h1>
+
+    <div class="section">
+      <label for="difficulty">Difficulty (Scramble Depth):</label>
+      <select id="difficulty">
+        <option value="3">Easy (3 moves)</option>
+        <option value="5" selected>Medium (5 moves)</option>
+        <option value="7">Hard (7 moves)</option>
+      </select>
+      <label class="checkbox-label">
+        <input type="checkbox" id="scramble-from-solved" checked>
+        Scramble from solved cube
+      </label>
+    </div>
+
+    <div class="section">
+      <label>Manual Configuration:</label>
+      <div class="input-group">
+        <input type="text" id="manual-scramble" placeholder="e.g. U R' F D">
+        <button id="apply-scramble-btn">Apply</button>
+      </div>
+      <div class="manual-color-controls" style="margin-top: 10px;">
+        <button id="toggle-manual-mode-btn">Enter Manual Color Mode</button>
+        <div id="color-palette" class="hidden" style="margin-top: 10px;">
+          <div class="palette-row">
+            <div class="color-swatch selected" data-color="U" style="background-color: white;"></div>
+            <div class="color-swatch" data-color="D" style="background-color: yellow;"></div>
+            <div class="color-swatch" data-color="F" style="background-color: green;"></div>
+            <div class="color-swatch" data-color="B" style="background-color: blue;"></div>
+            <div class="color-swatch" data-color="L" style="background-color: orange;"></div>
+            <div class="color-swatch" data-color="R" style="background-color: red;"></div>
+          </div>
+          <button id="validate-state-btn" style="margin-top: 5px;">Validate & Set State</button>
+          <p id="manual-status" style="font-size: 0.8rem; color: #aaa;"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <label for="heuristic-select">Heuristic Function:</label>
+      <select id="heuristic-select">
+        <option value="misplaced">Misplaced Stickers (Simple)</option>
+        <option value="misplaced-cubies">Misplaced Cubies (Better)</option>
+        <option value="twist-flip">Twist & Flip Distance (Weak)</option>
+        <option value="manhattan">3D Manhattan Distance (Advanced)</option>
+        <option value="single-pdb">Single PDB (Corners) 🔥</option>
+        <option value="disjoint-pdb">Disjoint PDB (Corners + Edges) 🔥🔥</option>
+      </select>
+      <div id="heuristic-explanation" class="info-box">
+        <small>Counts stickers that are not on the correct face.</small>
+      </div>
+      
+      <div id="pdb-controls" class="hidden" style="margin-top: 10px; padding: 10px; background: #333; border-radius: 4px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <span style="font-size: 0.9rem; font-weight: bold;">Pattern Databases</span>
+            <button id="generate-pdb-btn" style="padding: 4px 8px; font-size: 0.8rem;">Generate PDBs</button>
+        </div>
+        <div class="progress-bar-container" style="width: 100%; height: 6px; background: #555; border-radius: 3px; overflow: hidden;">
+            <div id="pdb-progress" style="width: 0%; height: 100%; background: #4ade80; transition: width 0.2s;"></div>
+        </div>
+        <p id="pdb-status" style="font-size: 0.75rem; color: #aaa; margin-top: 4px;">Required for PDB heuristics.</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="scramble-btn">Scramble</button>
+      <button id="solve-btn">Start A*</button>
+      <button id="step-btn" disabled>Next Step</button>
+      <button id="play-btn" disabled>Auto Play</button>
+      <button id="reset-btn">Reset</button>
+    </div>
+
+    <div id="stats">
+      <div class="stat-row">
+        <span>G-Score (Moves so far):</span>
+        <span id="g-score">0</span>
+      </div>
+      <div class="stat-row">
+        <span>H-Score (Est. remaining):</span>
+        <span id="h-score">0</span>
+      </div>
+      <div class="stat-row">
+        <span>Total Cost (F = G + H):</span>
+        <span id="f-score">0</span>
+      </div>
+    </div>
+
+    <div id="why-panel" style="display: none;">
+      <h4>Current Decision Analysis</h4>
+      <p id="why-text">Waiting to start...</p>
+    </div>
+
+    <div id="history-container">
+      <h3>Solution History</h3>
+      <div id="history-list">
+        <!-- History items here -->
+      </div>
+      <button id="export-csv-btn">Download CSV (For AI Training)</button>
+    </div>
+
+    <div id="explanation">
+      <p id="explanation-text">Welcome! Select difficulty and click Scramble.</p>
+      <button id="heuristic-info-btn" class="secondary-btn">What are Heuristics?</button>
+    </div>
+
+    <div id="open-set-container">
+      <h3>Open Set (Candidates)</h3>
+      <div id="open-set-list">
+        <!-- Items will be injected here -->
+      </div>
+    </div>
+  </div>
+
+  <div id="tree-container">
+    <div id="tree-controls">
+      <button class="zoom-btn" id="zoom-in-btn" title="Zoom In">
+        <svg viewBox="0 0 24 24">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+        </svg>
+      </button>
+      <button class="zoom-btn" id="zoom-out-btn" title="Zoom Out">
+        <svg viewBox="0 0 24 24">
+          <path d="M19 13H5v-2h14v2z" />
+        </svg>
+      </button>
+      <button class="zoom-btn" id="zoom-reset-btn" title="Reset Zoom">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+        </svg>
+      </button>
+    </div>
+    <button id="expand-tree-btn" title="Expand/Collapse">
+      <svg viewBox="0 0 24 24">
+        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Heuristic Info Modal -->
+  <div id="heuristic-modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="close-modal" class="close">&times;</span>
+      <h2>Understanding Heuristics</h2>
+      <p>An <strong>Heuristic</strong> is a "rule of thumb" that estimates how far a state is from the goal. A* uses it
+        to prioritize which paths to explore.</p>
+
+      <div class="comparison">
+        <div class="comp-item">
+          <h3>Misplaced Stickers</h3>
+          <p><strong>Analogy:</strong> "Peel and Stick"</p>
+          <p>Imagine you peel off every sticker that is in the wrong place and stick it back where it belongs. We just
+            count how many stickers we moved.</p>
+          <ul>
+            <li><strong>Pros:</strong> Very fast to calculate.</li>
+            <li><strong>Cons:</strong> Dumb. It thinks a piece 1 move away is the same as one 3 moves away.</li>
+          </ul>
+        </div>
+        <div class="comp-item">
+          <h3>Manhattan Distance (3D)</h3>
+          <p><strong>Analogy:</strong> "The Taxi Driver"</p>
+          <p>Imagine each piece is a taxi that needs to drive through the city (grid) to get home. We add up all their
+            distances.</p>
+          <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; margin: 5px 0; font-size: 0.8rem;">
+            <strong>Example:</strong><br>
+            A piece is at coordinate (0, 0, 0) but belongs at (2, 2, 2).<br>
+            Distance = |2-0| + |2-0| + |2-0| = 2 + 2 + 2 = <strong>6 moves</strong> away.<br>
+            We do this for all 26 pieces and sum it up.
+          </div>
+          <ul>
+            <li><strong>Pros:</strong> Smart. It knows exactly how "far" the cube is from being solved.</li>
+            <li><strong>Cons:</strong> Takes a bit more math to calculate.</li>
+          </ul>
+        </div>
+      </div>
+      <p><strong>Why it matters:</strong> A better heuristic (like Manhattan) guides the search more directly to the
+        goal, exploring fewer useless states (nodes).</p>
+    </div>
+  </div>
+  <script type="module" src="/main.js"></script>
+</body>
+
+</html>

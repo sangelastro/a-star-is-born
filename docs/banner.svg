@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 420" width="1280" height="420">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#1e1b4b"/></linearGradient>
+<radialGradient id="glow"><stop offset="0" stop-color="#fde68a" stop-opacity="0.5"/><stop offset="1" stop-color="#fde68a" stop-opacity="0"/></radialGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde047"/><stop offset="1" stop-color="#f59e0b"/></linearGradient></defs>
+<rect width="1280" height="420" rx="24" fill="url(#bg)"/>
+<circle cx="827" cy="43" r="1.6" fill="#e0e7ff" opacity="0.45"/>
+<circle cx="92" cy="213" r="0.9" fill="#e0e7ff" opacity="0.49"/>
+<circle cx="107" cy="50" r="1.4" fill="#e0e7ff" opacity="0.70"/>
+<circle cx="798" cy="385" r="1.6" fill="#e0e7ff" opacity="0.47"/>
+<circle cx="1231" cy="33" r="2.0" fill="#e0e7ff" opacity="0.41"/>
+<circle cx="812" cy="160" r="1.6" fill="#e0e7ff" opacity="0.28"/>
+<circle cx="94" cy="95" r="1.8" fill="#e0e7ff" opacity="0.49"/>
+<circle cx="582" cy="132" r="1.9" fill="#e0e7ff" opacity="0.63"/>
+<circle cx="671" cy="356" r="1.8" fill="#e0e7ff" opacity="0.41"/>
+<circle cx="1235" cy="61" r="1.4" fill="#e0e7ff" opacity="0.67"/>
+<circle cx="69" cy="276" r="1.9" fill="#e0e7ff" opacity="0.57"/>
+<circle cx="1106" cy="137" r="1.8" fill="#e0e7ff" opacity="0.58"/>
+<circle cx="739" cy="193" r="2.0" fill="#e0e7ff" opacity="0.77"/>
+<circle cx="608" cy="274" r="0.9" fill="#e0e7ff" opacity="0.64"/>
+<circle cx="822" cy="402" r="2.0" fill="#e0e7ff" opacity="0.41"/>
+<circle cx="498" cy="276" r="0.8" fill="#e0e7ff" opacity="0.50"/>
+<circle cx="93" cy="315" r="1.0" fill="#e0e7ff" opacity="0.39"/>
+<circle cx="505" cy="355" r="0.9" fill="#e0e7ff" opacity="0.50"/>
+<circle cx="701" cy="360" r="1.9" fill="#e0e7ff" opacity="0.73"/>
+<circle cx="465" cy="360" r="2.1" fill="#e0e7ff" opacity="0.33"/>
+<circle cx="751" cy="117" r="0.8" fill="#e0e7ff" opacity="0.48"/>
+<circle cx="478" cy="236" r="2.1" fill="#e0e7ff" opacity="0.63"/>
+<circle cx="659" cy="256" r="1.7" fill="#e0e7ff" opacity="0.28"/>
+<circle cx="1135" cy="319" r="2.0" fill="#e0e7ff" opacity="0.69"/>
+<circle cx="507" cy="171" r="0.9" fill="#e0e7ff" opacity="0.60"/>
+<circle cx="97" cy="41" r="1.1" fill="#e0e7ff" opacity="0.34"/>
+<circle cx="20" cy="74" r="0.9" fill="#e0e7ff" opacity="0.45"/>
+<circle cx="52" cy="356" r="1.7" fill="#e0e7ff" opacity="0.33"/>
+<circle cx="472" cy="63" r="2.0" fill="#e0e7ff" opacity="0.80"/>
+<circle cx="598" cy="204" r="0.9" fill="#e0e7ff" opacity="0.31"/>
+<circle cx="1048" cy="78" r="0.8" fill="#e0e7ff" opacity="0.77"/>
+<circle cx="675" cy="72" r="1.6" fill="#e0e7ff" opacity="0.26"/>
+<circle cx="675" cy="397" r="2.0" fill="#e0e7ff" opacity="0.63"/>
+<polygon points="197.8,173.0 300.0,114.0 402.2,173.0 402.2,291.0 300.0,350.0 197.8,291.0" fill="#0b0b10" stroke="#0b0b10" stroke-width="8" stroke-linejoin="round"/>
+<polygon points="300.0,117.1 328.6,133.7 300.0,150.2 271.4,133.7" fill="#f8fafc" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="334.1,136.8 362.7,153.3 334.1,169.9 305.5,153.3" fill="#3b82f6" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="368.1,156.5 396.7,173.0 368.1,189.5 339.5,173.0" fill="#ef4444" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="265.9,136.8 294.5,153.3 265.9,169.9 237.3,153.3" fill="#f97316" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="300.0,156.5 328.6,173.0 300.0,189.5 271.4,173.0" fill="#f8fafc" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="334.1,176.1 362.7,192.7 334.1,209.2 305.5,192.7" fill="#22c55e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="231.9,156.5 260.5,173.0 231.9,189.5 203.3,173.0" fill="#f8fafc" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="265.9,176.1 294.5,192.7 265.9,209.2 237.3,192.7" fill="#facc15" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="300.0,195.8 328.6,212.3 300.0,228.9 271.4,212.3" fill="#f8fafc" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="200.5,177.7 229.1,194.2 229.1,227.3 200.5,210.8" fill="#1ca54e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="234.6,197.4 263.2,213.9 263.2,246.9 234.6,230.4" fill="#1ca54e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="268.7,217.1 297.3,233.6 297.3,266.6 268.7,250.1" fill="#d2ab11" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="200.5,217.1 229.1,233.6 229.1,266.6 200.5,250.1" fill="#c83939" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="234.6,236.7 263.2,253.2 263.2,286.3 234.6,269.8" fill="#1ca54e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="268.7,256.4 297.3,272.9 297.3,305.9 268.7,289.4" fill="#d0d2d3" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="200.5,256.4 229.1,272.9 229.1,305.9 200.5,289.4" fill="#1ca54e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="234.6,276.1 263.2,292.6 263.2,325.6 234.6,309.1" fill="#316dce" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="268.7,295.7 297.3,312.2 297.3,345.3 268.7,328.8" fill="#1ca54e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="302.7,233.6 331.3,217.1 331.3,250.1 302.7,266.6" fill="#a22e2e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="336.8,213.9 365.4,197.4 365.4,230.4 336.8,246.9" fill="#aa8a0e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="370.9,194.2 399.5,177.7 399.5,210.8 370.9,227.3" fill="#a22e2e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="302.7,272.9 331.3,256.4 331.3,289.4 302.7,305.9" fill="#a22e2e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="336.8,253.2 365.4,236.7 365.4,269.8 336.8,286.3" fill="#a22e2e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="370.9,233.6 399.5,217.1 399.5,250.1 370.9,266.6" fill="#17853f" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="302.7,312.2 331.3,295.7 331.3,328.8 302.7,345.3" fill="#2858a7" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="336.8,292.6 365.4,276.1 365.4,309.1 336.8,325.6" fill="#a22e2e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="370.9,272.9 399.5,256.4 399.5,289.4 370.9,305.9" fill="#a94e0e" stroke="#0b0b10" stroke-width="1" stroke-linejoin="round"/>
+<circle cx="300" cy="56" r="78" fill="url(#glow)"/>
+<polygon points="300.0,14.0 310.0,42.2 339.9,43.0 316.2,61.3 324.7,90.0 300.0,73.0 275.3,90.0 283.8,61.3 260.1,43.0 290.0,42.2" fill="url(#gold)" stroke="#b45309" stroke-width="2" stroke-linejoin="round"/>
+<text x="560" y="170" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif" font-size="92" font-weight="800" fill="#f8fafc">A<tspan fill="#facc15">*</tspan> Is Born</text>
+<text x="564" y="226" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif" font-size="30" font-weight="500" fill="#c7d2fe">Watch a search algorithm fall in love</text>
+<text x="564" y="264" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif" font-size="30" font-weight="500" fill="#c7d2fe">with a solved Rubik's Cube.</text>
+<rect x="564" y="300" width="139" height="38" rx="19" fill="#f59e0b" fill-opacity="0.16" stroke="#f59e0b" stroke-opacity="0.7"/>
+<text x="634" y="325" text-anchor="middle" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif" font-size="19" font-weight="600" fill="#e2e8f0">A* search</text>
+<rect x="717" y="300" width="161" height="38" rx="19" fill="#22c55e" fill-opacity="0.16" stroke="#22c55e" stroke-opacity="0.7"/>
+<text x="798" y="325" text-anchor="middle" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif" font-size="19" font-weight="600" fill="#e2e8f0">Pattern DBs</text>
+<rect x="892" y="300" width="128" height="38" rx="19" fill="#3b82f6" fill-opacity="0.16" stroke="#3b82f6" stroke-opacity="0.7"/>
+<text x="956" y="325" text-anchor="middle" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif" font-size="19" font-weight="600" fill="#e2e8f0">Three.js</text>
+<rect x="1034" y="300" width="62" height="38" rx="19" fill="#ef4444" fill-opacity="0.16" stroke="#ef4444" stroke-opacity="0.7"/>
+<text x="1065" y="325" text-anchor="middle" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif" font-size="19" font-weight="600" fill="#e2e8f0">D3</text>
+</svg>
