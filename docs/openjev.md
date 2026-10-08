@@ -87,6 +87,59 @@ A model that has never seen a cube, reading four numbers, needs about 4× the no
 beats *Twist & Flip* by a wide margin and always finds the optimal solution on these cubes. It is also about
 10,000× slower per node: each expansion is a round trip to a neural network (~0.75 s per batch of 36 pairs).
 
+## 📖 Solve by the manual
+
+A\* with the OpenJev heuristic only copes with short scrambles. The **📖 Solve by the manual (OpenJev)** button
+does something else: OpenJev solves a **fully scrambled** cube by following the beginner's **layer-by-layer
+method**, the way a person reads a manual.
+
+**The manual (written as code) knows the 7 stages and their algorithms:**
+
+| Stage | Goal | Algorithms the manual allows |
+|---|---|---|
+| 1 | Bottom cross | "bring each edge home" (a short search finds how) |
+| 2 | Bottom corners | corner trigger `R U R' U'`, 1–5 times, from each side, after each U setup |
+| 3 | Middle layer | `U R U' R' U' F' U F` (right) and `U' L' U L U F U' F'` (left), from each side |
+| 4 | Top cross | `F R U R' U' F'` after each U setup |
+| 5 | Top face | Sune and Anti-Sune, single or in pairs |
+| 6 | Top corners | corner cycles (A-perms) from each side, U turns, single or in pairs |
+| 7 | Top edges | edge cycles (U-perms) from each side, single or in pairs |
+
+**At every step:**
+
+1. The code finds the current stage and lists the options the manual allows (from a few to about 80).
+2. It simulates each option and drops those that break the manual's two rules: *never undo a completed stage*
+   and *never undo progress on the current one*.
+3. **OpenJev reads the situation and the effect of each option**, and the one it agrees with most is played:
+   > *Premise:* Current stage 3 of 7, middle layer … Progress on this stage: 1 of 4 edges in place. The best step
+   > is the one that puts the most pieces in place on the current stage. The number of moves only matters
+   > between steps with the same progress.
+   >
+   > *Hypothesis:* This step puts 1 more in place: the middle layer goes from 1 to 2 of 4 edges in place. It is
+   > the best next step. (after U, middle edge to the right on the right side, 9 moves)
+
+The code never ranks the options: the model does. The "Why?" panel shows every decision:
+
+<p align="center">
+  <img src="openjev-manual.png" alt="Why panel in manual mode: stage dots, the premise, the five best options with OpenJev's agreement and the chosen algorithm" width="420">
+</p>
+
+**Results** (`node bench/manual.mjs 5`, 5 cubes scrambled with 25 random moves):
+
+| Who chooses | Solved | Avg moves | Avg steps | Time per cube |
+|---|---|---|---|---|
+| **🧠 OpenJev** | **5/5** | 287 | 33 | ~30 s |
+| Reference without a model (most progress, then fewest moves) | 100/100 | 155 | 17 | 20 ms |
+
+OpenJev picked the option with the most progress in 65% of the steps; the other times it still played a legal
+step of the manual and caught up later, which is why its solutions are longer. A human beginner using this
+method typically needs 100–150 moves.
+
+**What it took to get there.** The first version told the model that a good step "uses few moves". It took that
+literally: it gave 57% to a 4-move step that *undid* a corner and 1% to the 12-move step that placed one, and
+never got past stage 2. Putting the effect first in the sentence and saying that moves only matter between steps
+with the same progress fixed it. Same lesson as JevMate: the wording of the rubric *is* the program.
+
 ## Limits
 
 - **It reads numbers poorly.** The first two statements are almost always above 90%, so `h` is squeezed into a

@@ -91,6 +91,59 @@ scritte a mano, ma batte nettamente *Twist & Flip* e su questi cubi trova sempre
 10.000 volte più lento per nodo: ogni espansione è un giro di andata e ritorno con una rete neurale (~0,75 s per
 blocco di 36 coppie).
 
+## 📖 Risolvere col manuale
+
+A\* con l'euristica OpenJev regge solo mescolate corte. Il pulsante **📖 Solve by the manual (OpenJev)** fa
+un'altra cosa: OpenJev risolve un cubo **completamente mescolato** seguendo il **metodo a strati per principianti**,
+come una persona che legge un manuale.
+
+**Il manuale (scritto come codice) conosce le 7 tappe e i loro algoritmi:**
+
+| Tappa | Obiettivo | Algoritmi che il manuale consente |
+|---|---|---|
+| 1 | Croce in basso | "porta a casa ogni spigolo" (una breve ricerca trova come) |
+| 2 | Angoli in basso | `R U R' U'`, da 1 a 5 volte, da ogni lato, dopo ogni rotazione di U |
+| 3 | Strato centrale | `U R U' R' U' F' U F` (destra) e `U' L' U L U F U' F'` (sinistra), da ogni lato |
+| 4 | Croce in alto | `F R U R' U' F'` dopo ogni rotazione di U |
+| 5 | Faccia in alto | Sune e Anti-Sune, singoli o in coppia |
+| 6 | Angoli in alto | cicli di angoli (A-perm) da ogni lato, rotazioni di U, singoli o in coppia |
+| 7 | Spigoli in alto | cicli di spigoli (U-perm) da ogni lato, singoli o in coppia |
+
+**A ogni passo:**
+
+1. Il codice individua la tappa in corso ed elenca le opzioni consentite dal manuale (da poche a circa 80).
+2. Simula ogni opzione e scarta quelle che violano le due regole del manuale: *non disfare mai una tappa
+   completata* e *non disfare mai il progresso della tappa in corso*.
+3. **OpenJev legge la situazione e l'effetto di ogni opzione**, e si gioca quella su cui è più d'accordo:
+   > *Premessa:* Current stage 3 of 7, middle layer … Progress on this stage: 1 of 4 edges in place. The best step
+   > is the one that puts the most pieces in place on the current stage. The number of moves only matters
+   > between steps with the same progress.
+   >
+   > *Ipotesi:* This step puts 1 more in place: the middle layer goes from 1 to 2 of 4 edges in place. It is
+   > the best next step. (after U, middle edge to the right on the right side, 9 moves)
+
+Il codice non mette mai in classifica le opzioni: lo fa il modello. Il pannello "Why?" mostra ogni decisione:
+
+<p align="center">
+  <img src="openjev-manual.png" alt="Pannello Why in modalità manuale: le tappe, la premessa, le cinque opzioni migliori con l'accordo di OpenJev e l'algoritmo scelto" width="420">
+</p>
+
+**Risultati** (`node bench/manual.mjs 5`, 5 cubi mescolati con 25 mosse a caso):
+
+| Chi sceglie | Risolti | Mosse medie | Passi medi | Tempo per cubo |
+|---|---|---|---|---|
+| **🧠 OpenJev** | **5/5** | 287 | 33 | ~30 s |
+| Riferimento senza modello (più progresso, poi meno mosse) | 100/100 | 155 | 17 | 20 ms |
+
+OpenJev ha scelto l'opzione con più progresso nel 65% dei passi; le altre volte ha comunque giocato un passo
+valido del manuale e ha recuperato dopo, per questo le sue soluzioni sono più lunghe. Un principiante umano con
+questo metodo usa di solito 100–150 mosse.
+
+**Cosa è servito per arrivarci.** La prima versione diceva al modello che un buon passo "usa poche mosse". L'ha
+preso alla lettera: dava il 57% a un passo da 4 mosse che *disfaceva* un angolo e l'1% al passo da 12 mosse che ne
+sistemava uno, e non superava mai la tappa 2. Mettere l'effetto all'inizio della frase e dire che le mosse contano
+solo a parità di progresso ha risolto. Stessa lezione di JevMate: la formulazione del criterio *è* il programma.
+
 ## Limiti
 
 - **Legge male i numeri.** Le prime due affermazioni stanno quasi sempre sopra il 90%, quindi `h` resta schiacciata

@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { createCube, updateCubeVisuals } from './cube.js';
 import { CubeState, Scramble } from './cubeLogic.js';
 import { SolveAStarGenerator, heuristicMisplaced, heuristicManhattan, heuristicMisplacedCubies, heuristicTwistFlip, heuristicSinglePDB, heuristicDisjointPDB, generatePDBs } from './solver.js';
+import { solveByManual, openJevChooser, STAGES as MANUAL_STAGES } from './src/manual.js';
 import { heuristicOpenJev, checkOpenJev, openJevVerdict, HYPOTHESES as JEV_HYPOTHESES, WEIGHT as JEV_WEIGHT } from './src/openjev.js';
 
 let openJevReady = false;
@@ -486,6 +487,7 @@ playBtn.addEventListener('click', () => {
 });
 
 resetBtn.addEventListener('click', () => {
+    manualCancelled = true;
     resetSolver();
     cubeState = new CubeState();
     updateCubeVisuals(cubeGroup, cubeState);
@@ -545,7 +547,7 @@ function closeRaceModal() {
 }
 
 function setRaceControlsDisabled(disabled) {
-    [raceBtn, scrambleBtn, solveBtn, applyScrambleBtn, toggleManualModeBtn].forEach(b => b.disabled = disabled);
+    [raceBtn, scrambleBtn, solveBtn, applyScrambleBtn, toggleManualModeBtn, manualBtn].forEach(b => b.disabled = disabled);
 }
 
 raceBtn.addEventListener('click', async () => {
@@ -1014,3 +1016,84 @@ window.addEventListener('resize', () => {
 
 // Initialize tree on load
 initTree();
+
+
+// --- Solve by the manual: OpenJev follows the layer-by-layer method -------------------------------------------
+
+const manualBtn = document.getElementById('manual-btn');
+let manualCancelled = false;
+
+function manualVerdictHtml(ev) {
+    const stageList = MANUAL_STAGES.map(st => {
+        const cls = st.id < ev.stage.id ? 'done' : st.id === ev.stage.id ? 'current' : '';
+        return `<span class="manual-stage ${cls}" title="${escapeHtml(st.goal)}">${st.id}</span>`;
+    }).join('');
+    const options = ev.ranked.slice(0, 5).map((c, i) => {
+        const pct = Math.round(c.score * 100);
+        const effect = c.hypothesis.split(' It is the best next step.')[0];
+        return `<div class="manual-option ${i === 0 ? 'chosen' : ''}">
+            <div class="manual-option-head"><span class="jev-bar"><i style="width:${pct}%"></i></span>
+                <span class="jev-pct">${pct}%</span><span>${i === 0 ? '✅ ' : ''}${escapeHtml(c.name)}</span></div>
+            <div class="manual-option-effect">${escapeHtml(effect)}</div></div>`;
+    }).join('');
+    return `
+        <strong>Manual step ${ev.step} · stage ${ev.stage.id} of 7: ${ev.stage.name}</strong>
+        <div class="manual-stages">${stageList}</div>
+        <div class="jev-verdict">
+            <div class="jev-title">🧠 What OpenJev read and judged</div>
+            <div class="jev-label">The situation (premise, written by the code):</div>
+            <div class="jev-premise">${escapeHtml(ev.premise)}</div>
+            <div class="jev-label">${ev.ranked.length} options allowed by the manual, best 5 by OpenJev (agreement with "this is the best next step"):</div>
+            ${options}
+            <div class="jev-next">Chosen: ${escapeHtml(ev.chosen.moves.join(' '))} (${ev.chosen.moves.length} moves). Total so far: ${ev.totalMoves} moves.</div>
+        </div>`;
+}
+
+manualBtn.addEventListener('click', async () => {
+    if (isRacing || isSolving) return;
+    if (cubeState.isSolved()) {
+        alert('The cube is already solved! Scramble it first.');
+        return;
+    }
+    if (!(await checkOpenJev(4000)).ok) {
+        alert("OpenJev server not reachable on http://127.0.0.1:7474.\nStart it with: python openjev/server.py (see README).");
+        return;
+    }
+    resetSolver();
+    manualCancelled = false;
+    isSolving = true;
+    setRaceControlsDisabled(true);
+    heuristicSelect.disabled = true;
+    whyPanel.style.display = 'block';
+    const scramble = [...currentScrambleMoves];
+    explanationEl.innerHTML = '<strong>Solving by the manual…</strong> OpenJev is reading the cube.';
+
+    try {
+        for await (const ev of solveByManual(cubeState, openJevChooser())) {
+            if (manualCancelled) break;
+            if (ev.type === 'step') {
+                whyText.innerHTML = manualVerdictHtml(ev);
+                explanationEl.innerHTML = `<strong>Step ${ev.step}</strong> · stage ${ev.stage.id}/7 (${ev.stage.name}): ${escapeHtml(ev.chosen.name)}`;
+                for (const move of ev.chosen.moves) {
+                    if (manualCancelled) break;
+                    cubeState = cubeState.applyMove(move);
+                    updateCubeVisuals(cubeGroup, cubeState);
+                    await new Promise(r => setTimeout(r, 180));
+                }
+                updateStats(ev.totalMoves, 0);
+            } else if (ev.type === 'success') {
+                explanationEl.innerHTML = `<strong>Solved by the manual!</strong> ${ev.steps} steps chosen by OpenJev, ${ev.moves.length} moves.`;
+                addToHistory(ev.moves, scramble);
+                currentScrambleMoves = [];
+            } else {
+                explanationEl.textContent = `OpenJev did not finish: ${ev.reason}.`;
+            }
+        }
+    } catch (err) {
+        explanationEl.textContent = `OpenJev error: ${err.message}`;
+    } finally {
+        isSolving = false;
+        setRaceControlsDisabled(false);
+        heuristicSelect.disabled = false;
+    }
+});

@@ -805,3 +805,56 @@ button:disabled {
     display: none;
   }
 }
+
+/* Solve by the manual */
+.manual-stages {
+  display: flex;
+  gap: 4px;
+  margin: 6px 0 2px;
+}
+
+.manual-stage {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #9ca3af;
+}
+
+.manual-stage.done {
+  background: #16a34a;
+  color: #fff;
+}
+
+.manual-stage.current {
+  background: #a855f7;
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(192, 132, 252, 0.4);
+}
+
+.manual-option {
+  margin: 5px 0;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.manual-option.chosen {
+  background: rgba(168, 85, 247, 0.18);
+}
+
+.manual-option-head {
+  display: grid;
+  grid-template-columns: 60px 34px 1fr;
+  gap: 6px;
+  align-items: center;
+  color: #e5e7eb;
+}
+
+.manual-option-effect {
+  color: #9ca3af;
+  margin-top: 2px;
+}

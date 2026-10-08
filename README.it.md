@@ -29,6 +29,7 @@
 - 📋 **Ispettore dell'open set** con i migliori candidati e i loro punteggi `F = G + H`.
 - 💬 **Pannello "Why?"** che spiega ogni scelta a parole.
 - 🧠 **Un'euristica che è un modello linguistico**: [OpenJev](docs/openjev.it.md) legge fatti sul cubo scritti in inglese e giudica quanto sembra risolto. Il pannello "Why?" mostra esattamente cosa ha letto e come ha giudicato ogni nodo (serve un piccolo server locale).
+- 📖 **Risolvere col manuale**: OpenJev risolve un cubo completamente mescolato seguendo il metodo a strati per principianti, scegliendo un algoritmo alla volta; il pannello "Why?" mostra ogni opzione che ha valutato. [Come funziona →](docs/openjev.it.md#-risolvere-col-manuale)
 - 🎲 **Mescola come vuoi**:
   - mescolamenti casuali per difficoltà, partendo dal cubo risolto o sommandoli a quello attuale;
   - una sequenza di mosse personalizzata, tipo `U R' F D`;
@@ -120,8 +121,10 @@ cubeLogic.js    Stato del cubo, mosse e modello a cubetti (permutazione/orientam
 solver.js       Euristiche e generatore A*
 src/pdb.js      Indicizzazione e generazione dei pattern database
 src/openjev.js  Euristica OpenJev: fatti sul cubo, client del modello locale, verdetti per il pannello "Why?"
+src/manual.js   Manuale a strati: tappe, algoritmi, opzioni e scelta con OpenJev
 openjev/        Server locale di OpenJev (Python) e script per scaricare il modello
 bench/race.mjs  Gara delle euristiche senza browser, in Node, su mescolamenti riproducibili
+bench/manual*.mjs  Risolutore col manuale: OpenJev su cubi casuali, e test senza modello
 style.css       Stili
 ```
 

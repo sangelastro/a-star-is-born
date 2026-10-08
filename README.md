@@ -29,6 +29,7 @@
 - 📋 **Open set inspector** showing the best candidates and their `F = G + H` scores.
 - 💬 **"Why?" panel** explaining every choice in plain English.
 - 🧠 **A heuristic that is a language model**: [OpenJev](docs/openjev.md) reads plain-English facts about the cube and judges how solved it looks. The "Why?" panel shows exactly what it read and how it judged every node (needs a small local server).
+- 📖 **Solve by the manual**: OpenJev solves a fully scrambled cube by following the beginner's layer-by-layer method, choosing one algorithm at a time; the "Why?" panel shows every option it weighed. [How it works →](docs/openjev.md#-solve-by-the-manual)
 - 🎲 **Scramble it your way**:
   - random scrambles by difficulty, starting from a solved cube or stacked on the current one;
   - a custom move sequence like `U R' F D`;
@@ -120,8 +121,10 @@ cubeLogic.js    Cube state, moves and cubie (permutation/orientation) model
 solver.js       Heuristics and the A* generator
 src/pdb.js      Pattern database indexing and generation
 src/openjev.js  OpenJev heuristic: cube facts, local model client, verdicts for the "Why?" panel
+src/manual.js   Layer-by-layer manual: stages, algorithms, options and the OpenJev chooser
 openjev/        Local OpenJev scoring server (Python) and model download script
 bench/race.mjs  Headless Heuristic Race in Node, on seeded scrambles
+bench/manual*.mjs  Manual solver: OpenJev on random cubes, and sanity tests without a model
 style.css       Styles
 ```
 
