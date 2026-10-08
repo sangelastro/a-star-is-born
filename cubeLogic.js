@@ -141,7 +141,7 @@ export class CubeState {
 
 // Corner definitions (indices of stickers)
 // Order: URF, UFL, ULB, UBR, DFR, DLF, DBL, DRB
-const CORNER_INDICES = [
+export const CORNER_INDICES = [
     [8, 27, 20],  // URF (U8, R0, F2)
     [6, 18, 11],  // UFL (U6, F0, L2)
     [0, 9, 38],   // ULB (U0, L0, B2)
@@ -154,7 +154,7 @@ const CORNER_INDICES = [
 
 // Edge definitions (indices of stickers)
 // Order: UR, UF, UL, UB, DR, DF, DL, DB, FR, FL, BL, BR
-const EDGE_INDICES = [
+export const EDGE_INDICES = [
     [5, 28], // UR (U5, R1)
     [7, 19], // UF (U7, F1)
     [3, 10], // UL (U3, L1)

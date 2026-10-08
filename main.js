@@ -4,6 +4,40 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { createCube, updateCubeVisuals } from './cube.js';
 import { CubeState, Scramble } from './cubeLogic.js';
 import { SolveAStarGenerator, heuristicMisplaced, heuristicManhattan, heuristicMisplacedCubies, heuristicTwistFlip, heuristicSinglePDB, heuristicDisjointPDB, generatePDBs } from './solver.js';
+import { heuristicOpenJev, checkOpenJev, openJevVerdict, HYPOTHESES as JEV_HYPOTHESES, WEIGHT as JEV_WEIGHT } from './src/openjev.js';
+
+let openJevReady = false;
+let activeHeuristic = null;
+
+// Scores can be fractional (OpenJev): show integers as they are, the rest with two decimals
+const fmt = n => (Number.isInteger(n) ? String(n) : n.toFixed(2));
+const escapeHtml = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// What OpenJev read (the facts) and judged (one probability per hypothesis) for a node
+function openJevVerdictHtml(node, runnerUp) {
+    const v = openJevVerdict(node.state);
+    if (!v) return '';
+    const rows = JEV_HYPOTHESES.map((hyp, i) => {
+        const pct = Math.round(v.probs[i] * 100);
+        return `<div class="jev-row"><span class="jev-hyp">“${escapeHtml(hyp)}”</span>
+            <span class="jev-bar"><i style="width:${pct}%"></i></span><span class="jev-pct">${pct}%</span></div>`;
+    }).join('');
+    const next = runnerUp
+        ? `<div class="jev-next">Next in line: Node #${runnerUp.id} with F=${fmt(runnerUp.f)} (G:${runnerUp.g} + H:${fmt(runnerUp.h)}).</div>`
+        : '';
+    return `
+        <div class="jev-verdict">
+            <div class="jev-title">🧠 What OpenJev read and judged</div>
+            <div class="jev-label">Facts it read (premise, written by the code):</div>
+            <div class="jev-premise">${escapeHtml(v.premise.replace("Rubik's Cube position. ", ''))}</div>
+            <div class="jev-label">How strongly the facts support each statement:</div>
+            ${rows}
+            <div class="jev-h">H = ${JEV_WEIGHT} × (1 − average ${v.mean.toFixed(2)}) = <strong>${fmt(v.h)}</strong>
+                ${node.state.isSolved() ? ' (solved cube: H forced to 0)' : ''}</div>
+            ${next}
+        </div>`;
+}
+checkOpenJev().then(s => { openJevReady = s.ok; });
 import * as d3 from 'd3';
 
 // --- Scene Setup (Three.js) ---
@@ -99,7 +133,8 @@ const heuristicInfo = {
     'misplaced-cubies': "<strong>Misplaced Cubies:</strong> Counts corners and edges that are in the wrong position. Better than stickers because it respects the piece structure.",
     'twist-flip': "<strong>Twist & Flip:</strong> Counts how many pieces are in the right spot but rotated wrong. Very weak on its own.",
     'single-pdb': "<strong>Single PDB (Corners):</strong> Uses a pre-computed database of all 88 million corner states (or a subset) to know the EXACT moves needed to solve corners. Very fast and strong.",
-    'disjoint-pdb': "<strong>Disjoint PDB:</strong> Combines Corner PDB with an Edge PDB. It knows how to solve corners AND edges simultaneously. The strongest heuristic here."
+    'disjoint-pdb': "<strong>Disjoint PDB:</strong> Combines Corner PDB with an Edge PDB. It knows how to solve corners AND edges simultaneously. The strongest heuristic here.",
+    'openjev': "<strong>OpenJev:</strong> an NLI language model that knows nothing about cubes. It reads plain-English facts (solved cubies, complete faces, stickers at home) and judges how solved the cube looks: h = 10 × (1 − its confidence). Needs the local server (<code>openjev/server.py</code>); slow, about 1–3 s per expansion."
 };
 
 // PDB UI
@@ -378,8 +413,9 @@ scrambleBtn.addEventListener('click', () => {
     initTree();
 });
 
-solveBtn.addEventListener('click', () => {
+solveBtn.addEventListener('click', async () => {
     if (isSolving) return;
+    if (heuristicSelect.value === 'openjev' && !openJevReady) openJevReady = (await checkOpenJev(4000)).ok;
 
     isSolving = true;
     scrambleBtn.disabled = true;
@@ -397,7 +433,22 @@ solveBtn.addEventListener('click', () => {
         case 'twist-flip': selectedHeuristic = heuristicTwistFlip; break;
         case 'single-pdb': selectedHeuristic = heuristicSinglePDB; break;
         case 'disjoint-pdb': selectedHeuristic = heuristicDisjointPDB; break;
+        case 'openjev': selectedHeuristic = heuristicOpenJev; break;
         default: selectedHeuristic = heuristicMisplaced;
+    }
+
+    if (heuristicSelect.value === 'openjev' && !openJevReady) {
+        alert("OpenJev server not reachable on http://127.0.0.1:7474.\nStart it with: python openjev/server.py (see README).");
+        checkOpenJev().then(s => { openJevReady = s.ok; });
+        isSolving = false;
+        scrambleBtn.disabled = false;
+        solveBtn.disabled = false;
+        stepBtn.disabled = true;
+        playBtn.disabled = true;
+        difficultySelect.disabled = false;
+        heuristicSelect.disabled = false;
+        applyScrambleBtn.disabled = false;
+        return;
     }
 
     if ((heuristicSelect.value === 'single-pdb' || heuristicSelect.value === 'disjoint-pdb') && !pdbsGenerated) {
@@ -414,6 +465,7 @@ solveBtn.addEventListener('click', () => {
     }
 
     solverGenerator = SolveAStarGenerator(cubeState, selectedHeuristic);
+    activeHeuristic = selectedHeuristic;
     explanationEl.textContent = "A* Solver initialized. Click 'Next Step' or 'Auto Play'.";
     whyPanel.style.display = 'block';
 
@@ -469,7 +521,8 @@ const RACE_HEURISTICS = [
     { name: 'Twist & Flip', fn: heuristicTwistFlip },
     { name: '3D Manhattan', fn: heuristicManhattan },
     { name: 'Single PDB', fn: heuristicSinglePDB },
-    { name: 'Disjoint PDB', fn: heuristicDisjointPDB }
+    { name: 'Disjoint PDB', fn: heuristicDisjointPDB },
+    { name: 'OpenJev 🧠', fn: heuristicOpenJev, maxExpanded: 300 }
 ];
 
 const raceBtn = document.getElementById('race-btn');
@@ -524,6 +577,8 @@ raceBtn.addEventListener('click', async () => {
         rows.filter(r => r.fn === heuristicSinglePDB || r.fn === heuristicDisjointPDB)
             .forEach(r => { r.status = 'skipped'; });
     }
+    openJevReady = (await checkOpenJev()).ok;
+    if (!openJevReady) rows.filter(r => r.fn === heuristicOpenJev).forEach(r => { r.status = 'skipped'; });
 
     for (const row of rows) {
         if (raceCancelled) break;
@@ -560,6 +615,10 @@ async function raceOne(row, startState, onTick) {
         }
         if (value.type === 'step') {
             row.expanded++;
+            if (row.maxExpanded && row.expanded > row.maxExpanded) {
+                row.status = 'failed';
+                return true;
+            }
         } else if (value.type === 'success') {
             row.status = 'solved';
             row.moves = value.path.length;
@@ -569,8 +628,8 @@ async function raceOne(row, startState, onTick) {
             return true;
         }
 
-        // Let the browser breathe and show live progress
-        if (row.expanded % 40 === 0) {
+        // Let the browser breathe and show live progress (every step for slow, model-based heuristics)
+        if (row.expanded % (row.maxExpanded ? 1 : 40) === 0) {
             onTick();
             await new Promise(r => setTimeout(r, 0));
             if (raceCancelled) return false;
@@ -667,10 +726,18 @@ function resetSolver() {
     whyPanel.style.display = 'none';
 }
 
-async function stepSolver() {
-    if (!solverGenerator) return;
+let stepInFlight = false; // async heuristics (OpenJev) can take longer than the auto-play interval
 
-    const result = await solverGenerator.next();
+async function stepSolver() {
+    if (!solverGenerator || stepInFlight) return;
+
+    stepInFlight = true;
+    let result;
+    try {
+        result = await solverGenerator.next();
+    } finally {
+        stepInFlight = false;
+    }
 
     if (result.done) {
         handleSolverEnd(result.value);
@@ -690,17 +757,18 @@ async function stepSolver() {
         const f = data.current.f;
 
         let narrative = `<strong>Step ${data.iterations}:</strong> `;
-        narrative += `Expanding a state with <strong>F=${f}</strong>.<br>`;
+        narrative += `Expanding a state with <strong>F=${fmt(f)}</strong>.<br>`;
         explanationEl.innerHTML = narrative;
 
         whyText.innerHTML = `
             <strong>Evaluating Node #${data.current.id}</strong><br>
-            This node has the lowest total cost (F=${f}) in the Open Set.<br>
+            This node has the lowest total cost (F=${fmt(f)}) in the Open Set.<br>
             <ul>
                 <li><strong>Cost so far (G):</strong> ${g} moves from start.</li>
-                <li><strong>Estimated remaining (H):</strong> ${h} moves to goal.</li>
+                <li><strong>Estimated remaining (H):</strong> ${fmt(h)} moves to goal.</li>
             </ul>
             <strong>Action:</strong> Generating all possible next moves (neighbors) to see if any lead closer to the solution.
+            ${activeHeuristic === heuristicOpenJev ? openJevVerdictHtml(data.current, data.openSet[0]) : ''}
         `;
 
     } else if (data.type === 'success') {
@@ -732,15 +800,15 @@ async function stepSolver() {
 
 function updateStats(g, h) {
     gScoreEl.textContent = g;
-    hScoreEl.textContent = h;
-    fScoreEl.textContent = g + h;
+    hScoreEl.textContent = fmt(h);
+    fScoreEl.textContent = fmt(g + h);
 }
 
 function updateOpenSetUI(openSet) {
     openSetListEl.innerHTML = openSet.map((node, index) => `
         <div class="open-set-item ${index === 0 ? 'best' : ''}">
             <span>Node #${node.id}</span>
-            <span>F: <strong>${node.f}</strong> (G:${node.g} + H:${node.h})</span>
+            <span>F: <strong>${fmt(node.f)}</strong> (G:${node.g} + H:${fmt(node.h)})</span>
         </div>
     `).join('');
 }

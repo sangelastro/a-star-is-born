@@ -104,7 +104,10 @@ export async function* SolveAStarGenerator(startState, heuristicFunc = heuristic
     const openSet = [];
     const closedSet = new Set();
 
-    const startH = heuristicFunc(startState);
+    // Async heuristics (e.g. OpenJev, served by a local model) expose a batch(states) => Promise<number[]>
+    // so that all the children of a node are scored in a single call.
+    const batchH = heuristicFunc.batch;
+    const startH = batchH ? (await batchH([startState]))[0] : heuristicFunc(startState);
     const startNode = {
         state: startState,
         path: [],
@@ -154,15 +157,16 @@ export async function* SolveAStarGenerator(startState, heuristicFunc = heuristic
             return;
         }
 
-        for (const move of moves) {
-            if (current.path.length > 0) {
-                const lastMove = current.path[current.path.length - 1];
-                if (isReverseMove(move, lastMove)) continue;
-            }
+        const lastMove = current.path[current.path.length - 1];
+        const childMoves = moves.filter(move => !(lastMove && isReverseMove(move, lastMove)));
+        const childStates = childMoves.map(move => current.state.applyMove(move));
+        const childH = batchH ? await batchH(childStates) : childStates.map(st => heuristicFunc(st));
 
-            const newState = current.state.applyMove(move);
+        for (let k = 0; k < childMoves.length; k++) {
+            const move = childMoves[k];
+            const newState = childStates[k];
             const newG = current.g + 1;
-            const newH = heuristicFunc(newState);
+            const newH = childH[k];
 
             const neighbor = {
                 state: newState,

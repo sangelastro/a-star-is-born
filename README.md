@@ -28,6 +28,7 @@
 - 🌳 **Live search tree** built with D3. The current node, the frontier and the winning path are highlighted, and you can zoom, pan or go full screen.
 - 📋 **Open set inspector** showing the best candidates and their `F = G + H` scores.
 - 💬 **"Why?" panel** explaining every choice in plain English.
+- 🧠 **A heuristic that is a language model**: [OpenJev](docs/openjev.md) reads plain-English facts about the cube and judges how solved it looks. The "Why?" panel shows exactly what it read and how it judged every node (needs a small local server).
 - 🎲 **Scramble it your way**:
   - random scrambles by difficulty, starting from a solved cube or stacked on the current one;
   - a custom move sequence like `U R' F D`;
@@ -83,8 +84,11 @@ On this 7-move scramble, the disjoint pattern database finds the solution after 
 | 3D Manhattan Distance | Adds up how far each sticker is from its home face. |
 | Single PDB (Corners) | Pattern databases for corner orientation and permutation, built in the browser with a breadth-first search. |
 | Disjoint PDB (Corners + Edges) | Combines the corner PDBs with a PDB for a subset of edges. |
+| 🧠 OpenJev language model | No formula: an NLI model reads facts about the cube (solved cubies, complete faces, stickers at home) and judges three statements, from *"at least half of the cubies are solved"* to *"the cube is solved"*. `h = 10 × (1 − average agreement)`. **[How it works →](docs/openjev.md)** |
 
 > The PDB heuristics need a click on **Generate PDBs** first. The tables are built in your browser and take a few seconds.
+>
+> The OpenJev heuristic needs its model server running on your machine (`python openjev/server.py`, see [Run it locally](docs/openjev.md#run-it-locally)). Without it, the option tells you how to start it and the race skips it.
 
 ## 🚀 Getting started
 
@@ -115,6 +119,9 @@ cube.js         3D cube meshes and sticker rendering
 cubeLogic.js    Cube state, moves and cubie (permutation/orientation) model
 solver.js       Heuristics and the A* generator
 src/pdb.js      Pattern database indexing and generation
+src/openjev.js  OpenJev heuristic: cube facts, local model client, verdicts for the "Why?" panel
+openjev/        Local OpenJev scoring server (Python) and model download script
+bench/race.mjs  Headless Heuristic Race in Node, on seeded scrambles
 style.css       Styles
 ```
 
@@ -134,6 +141,8 @@ Moves use standard Singmaster notation: `U` (up), `D` (down), `L` (left), `R` (r
   *"Finding Optimal Solutions to Rubik's Cube Using Pattern Databases"*, AAAI-97, 1997.
 - **Disjoint pattern databases** are by **Richard E. Korf and Ariel Felner**:
   *"Disjoint Pattern Database Heuristics"*, Artificial Intelligence, 134(1–2), 9–22, 2002.
+
+**The language model.** [OpenJev](https://huggingface.co/AlexWortega/openjev) by AlexWortega (MIT), built on Qwen3.5 by Alibaba.
 
 **The puzzle.** The Rubik's Cube was invented by **Ernő Rubik** in 1974.
 

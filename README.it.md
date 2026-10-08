@@ -28,6 +28,7 @@
 - 🌳 **Albero di ricerca in tempo reale** con D3. Il nodo corrente, la frontiera e il percorso vincente sono evidenziati, e puoi zoomare, spostarti o andare a schermo intero.
 - 📋 **Ispettore dell'open set** con i migliori candidati e i loro punteggi `F = G + H`.
 - 💬 **Pannello "Why?"** che spiega ogni scelta a parole.
+- 🧠 **Un'euristica che è un modello linguistico**: [OpenJev](docs/openjev.it.md) legge fatti sul cubo scritti in inglese e giudica quanto sembra risolto. Il pannello "Why?" mostra esattamente cosa ha letto e come ha giudicato ogni nodo (serve un piccolo server locale).
 - 🎲 **Mescola come vuoi**:
   - mescolamenti casuali per difficoltà, partendo dal cubo risolto o sommandoli a quello attuale;
   - una sequenza di mosse personalizzata, tipo `U R' F D`;
@@ -83,8 +84,11 @@ Su questo mescolamento da 7 mosse, il pattern database disgiunto trova la soluzi
 | 3D Manhattan Distance | Somma quanto ogni adesivo è lontano dalla sua faccia. |
 | Single PDB (Corners) | Pattern database per orientamento e permutazione degli angoli, costruiti nel browser con una ricerca in ampiezza. |
 | Disjoint PDB (Corners + Edges) | Combina i PDB degli angoli con un PDB su un sottoinsieme di spigoli. |
+| 🧠 OpenJev language model | Nessuna formula: un modello NLI legge fatti sul cubo (cubetti risolti, facce complete, adesivi a posto) e giudica tre affermazioni, da *"almeno metà dei cubetti è risolta"* a *"il cubo è risolto"*. `h = 10 × (1 − accordo medio)`. **[Come funziona →](docs/openjev.it.md)** |
 
 > Le euristiche PDB richiedono prima un click su **Generate PDBs**. Le tabelle vengono costruite nel tuo browser in pochi secondi.
+>
+> L'euristica OpenJev richiede il suo server del modello acceso sul tuo computer (`python openjev/server.py`, vedi [Avviarlo in locale](docs/openjev.it.md#avviarlo-in-locale)). Senza server, l'opzione spiega come avviarlo e la gara la salta.
 
 ## 🚀 Come avviarlo
 
@@ -115,6 +119,9 @@ cube.js         Mesh del cubo 3D e disegno degli adesivi
 cubeLogic.js    Stato del cubo, mosse e modello a cubetti (permutazione/orientamento)
 solver.js       Euristiche e generatore A*
 src/pdb.js      Indicizzazione e generazione dei pattern database
+src/openjev.js  Euristica OpenJev: fatti sul cubo, client del modello locale, verdetti per il pannello "Why?"
+openjev/        Server locale di OpenJev (Python) e script per scaricare il modello
+bench/race.mjs  Gara delle euristiche senza browser, in Node, su mescolamenti riproducibili
 style.css       Stili
 ```
 
@@ -134,6 +141,8 @@ Le mosse usano la notazione standard di Singmaster: `U` (su), `D` (giù), `L` (s
   *"Finding Optimal Solutions to Rubik's Cube Using Pattern Databases"*, AAAI-97, 1997.
 - I **pattern database disgiunti** sono di **Richard E. Korf e Ariel Felner**:
   *"Disjoint Pattern Database Heuristics"*, Artificial Intelligence, 134(1–2), 9–22, 2002.
+
+**Il modello linguistico.** [OpenJev](https://huggingface.co/AlexWortega/openjev) di AlexWortega (MIT), basato su Qwen3.5 di Alibaba.
 
 **Il rompicapo.** Il cubo di Rubik è stato inventato da **Ernő Rubik** nel 1974.
 

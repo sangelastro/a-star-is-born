@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# OpenJev (local model server)
+openjev/models/
+__pycache__/
